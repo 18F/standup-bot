@@ -142,7 +142,7 @@ controller.hears(['(schedule|create) standup (.*)'],['direct_mention'], function
   if (message.channel[0] == 'C') {
     var frequency = '';
     var weekday = '';
-    var time = message.match[2].match(/(\d+|:)*(\s)?((a|p)m)/gi);
+    var time = message.match[2].match(/((\d+|:)*(\s)?((a|p)m)|\d{4})/gi);
     time = moment(time[0], ['h:mm a','hmm a','hmma','HHmm','hha','hh a']);
     if (message.match[2].match(/daily/)) {
       frequency = 'daily';
