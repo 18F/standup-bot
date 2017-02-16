@@ -1,14 +1,21 @@
 'use strict';
 
 require('./env');
+
+// If there's a client ID and secret, assume it's configured
+// to run as an app.  Set this flag before loading the other
+// modules as they may depend on it.
+process.env.IS_APP = false;
+if(process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET) {
+  process.env.IS_APP = true;
+}
+
 var log = require('./getLogger')('app');
 var Botkit = require('botkit');
 var schedule = require('node-schedule');
 var botLib = require('./lib/bot');
 var startWebServer = require('./lib/web/start');
 var cfenv = require('cfenv');
-
-var appEnv = cfenv.getAppEnv();
 
 // Database setup
 var models = require('./models');
@@ -22,6 +29,7 @@ if (!process.env.SLACK_TOKEN) {
   process.exit(1);
 }
 
+// Custom botkit logger
 var bkLogger = require('./getLogger')('botkit');
 function bkLog(level) {
   var args = [ ];
@@ -56,9 +64,21 @@ var controller = Botkit.slackbot({
   debug: false,
   logger: { log: bkLog },
   webserver: {
-    static_dir: __dirname + '/lib/web/static'
+    static_dir: `${__dirname}/lib/web/static`
   }
 });
+
+let hookupEndpoints = () => { };
+if(process.env.IS_APP) {
+  log.verbose('Running as a Slack app');
+  hookupEndpoints = () => {
+    log.verbose('Attaching webhook endpoints');
+    controller.createWebhookEndpoints(controller.webserver, process.env.SLACK_VERIFICATION_CODE);
+  }
+}
+
+// Only hook up the webhook endpoints if this is running as an app.
+startWebServer(controller).then(hookupEndpoints);
 
 // Initialize the bot
 controller.spawn({
@@ -67,10 +87,21 @@ controller.spawn({
 }).startRTM(function(err, bot) {
   if (err) {
     log.error(err);
-    throw new Error(err);
+    process.exit(1);
   } else {
     log.info('Connected to RTM');
     bot.identifyBot(function(err,identity) {
+
+      // Persist the team ID in the controller's datastore. This is necessary
+      // for message button responses.
+      controller.storage.teams.save({ id: identity.team_id, bot: { name: identity.name, id: identity.id} }, (err) => {
+        if(err) {
+          log.error(err);
+        } else {
+          log.info(`Persisted team id: ${identity.team_id}`);
+        }
+      });
+
       // identity contains...
       // {name, id, team_id}
       log.info('Bot name: ' + identity.name);
@@ -85,7 +116,7 @@ controller.spawn({
 
       // Set yourself OOO for some time.  Put this above getStandupInfo
       // because getStandupInfo catches anything that starts with "#channel",
-      // so catch the more precise 
+      // so catch the more precise
       botLib.setOutOfOffice(controller);
 
       botLib.getStandupInfo(controller);
@@ -116,6 +147,9 @@ controller.spawn({
       // Get a weekly user report
       botLib.userReport(controller);
 
+      // Interactive message handling
+      botLib.interactive.interactive(controller, bot);
+
       // I think that these aren't necessary because channel & user are stored as
       // unique id rather than display name
       // TODO: update channel name if it changes
@@ -123,7 +157,5 @@ controller.spawn({
 
       log.verbose('All bot functions initialized');
     });
-
-    startWebServer(controller);
   }
 });
