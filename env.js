@@ -1,6 +1,11 @@
 'use strict';
 
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch(_e) {
+  console.info('No .env file loaded');
+}
+
 const cfenv = require('cfenv');
 const appEnv = cfenv.getAppEnv();
 
