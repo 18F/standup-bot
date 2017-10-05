@@ -1,28 +1,24 @@
-'use strict';
-// var sinon = require('sinon');
-var botLib = require('../../lib/bot');
-var common = require('./common');
-// var models = require('../../models');
+const botLib = require('../../lib/bot');
+const common = require('./common');
 
-module.exports = function() {
-  var _message = { };
-  // var _findAllChannelsStub;
-  // var _bot;
+module.exports = function setReminderTests() {
+  const botMessage = { };
 
-  this.When(/I say "@bot ((reminder) (.*))"/,
-    function(message, triggerWord, rest, done) {
+  this.When(
+    /I say "@bot ((reminder) (.*))"/,
+    (message, triggerWord, rest, done) => {
       botLib.setReminder(common.botController);
 
-      _message.type = 'message';
-      _message.text = message;
-      _message.channel = _message.channel || 'CSomethingSaySomething';
-      _message.match = [
+      botMessage.type = 'message';
+      botMessage.text = message;
+      botMessage.channel = botMessage.channel || 'CSomethingSaySomething';
+      botMessage.match = [
         message,
         triggerWord,
         rest
       ];
 
-      common.botRepliesToHearing(_message, done);
-  });
-
+      common.botRepliesToHearing(botMessage, done);
+    }
+  );
 };

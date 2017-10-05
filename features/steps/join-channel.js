@@ -1,38 +1,36 @@
-'use strict';
-var sinon = require('sinon');
-var botLib = require('../../lib/bot');
-var common = require('./common');
+const sinon = require('sinon');
+const botLib = require('../../lib/bot');
+const common = require('./common');
 
-module.exports = function() {
-  var _createJoinFn = null;
-  var _botReply = '';
-  var _botName = '';
+module.exports = function joinChannelTests() {
+  let createJoinFn = null;
+  let botReply = '';
+  let botName = '';
 
-  this.Given(/^the bot is named "([^"]+)"$/, function(botName) {
-    _botName = botName;
+  this.Given(/^the bot is named "([^"]+)"$/, (botNameFromSetup) => {
+    botName = botNameFromSetup;
     botLib.joinChannel(common.botController, botName);
-    _createJoinFn = common.getHandler(common.botController.on);
+    createJoinFn = common.getHandler(common.botController.on);
   });
 
-  this.When('the bot joins a channel', function(done) {
-    var bot = { };
+  this.When('the bot joins a channel', (done) => {
+    const bot = { };
     bot.reply = sinon.spy();
 
-    _createJoinFn(bot, { });
+    createJoinFn(bot, { });
 
-    common.wait(function() { return bot.reply.called; }, function() {
-      _botReply = bot.reply.args[0][1].text;
+    common.wait(() => bot.reply.called, () => {
+      botReply = bot.reply.args[0][1].text;
       done();
     });
   });
 
-  this.Then(/^the bot says$/, function(message) {
-    var expected = message.replace(/@<(bot-name)>/, '@' + _botName);
+  this.Then(/^the bot says$/, (message) => {
+    const expected = message.replace(/@<(bot-name)>/, `@${botName}`);
 
-    if(expected === _botReply) {
+    if (expected === botReply) {
       return true;
-    } else {
-      throw new Error('Bot introduction was not "' + expected + '"');
     }
+    throw new Error(`Bot introduction was not "${expected}"`);
   });
 };

@@ -1,28 +1,26 @@
-'use strict';
-var sinon = require('sinon');
-var models = require('../../models');
-var botLib = require('../../lib/bot');
-var common = require('./common');
+const sinon = require('sinon');
+const models = require('../../models');
+const botLib = require('../../lib/bot');
+const common = require('./common');
 
-module.exports = function() {
-  var _message = { };
+module.exports = function startInterviewTests() {
+  const botMessage = { };
 
-  var _findAllStandupsStub;
-  var _findOneChannelStub;
-  var _expectConvo = true;
+  let findAllStandupsStub;
+  let findOneChannelStub;
 
-  var clearStubs = function() {
-    if(_findOneChannelStub) {
-      _findOneChannelStub.restore();
-      _findOneChannelStub = null;
+  const clearStubs = () => {
+    if (findOneChannelStub) {
+      findOneChannelStub.restore();
+      findOneChannelStub = null;
     }
-    if(_findAllStandupsStub) {
-      _findAllStandupsStub.restore();
-      _findAllStandupsStub = null;
+    if (findAllStandupsStub) {
+      findAllStandupsStub.restore();
+      findAllStandupsStub = null;
     }
-  }
+  };
 
-  this.When('I am already being interviewed for another channel', function(done) {
+  this.When('I am already being interviewed for another channel', (done) => {
     botLib.startInterview(common.botController);
 
     const message = {
@@ -32,28 +30,30 @@ module.exports = function() {
       channel: 'COtherChannel'
     };
 
-    _findAllStandupsStub = sinon.stub(models.Standup, 'findAll').resolves([ ]);
-    _findOneChannelStub = sinon.stub(models.Channel, 'findOne').resolves({ time: '1230', name: message.channel, audience: null });
+    findAllStandupsStub = sinon.stub(models.Standup, 'findAll').resolves([]);
+    findOneChannelStub = sinon.stub(models.Channel, 'findOne').resolves({ time: '1230', name: message.channel, audience: null });
 
-    common.botStartsConvoWith(message, common.botController.hears, function() {
+    common.botStartsConvoWith(message, common.botController.hears, () => {
       clearStubs();
       done();
     });
   });
 
-  this.When(/I say "(@bot\b.*\binterview\b.*)"/,
-    function(message, done) {
+  this.When(
+    /I say "(@bot\b.*\binterview\b.*)"/,
+    (message, done) => {
       botLib.startInterview(common.botController);
 
-      _message.user = 'U7654321';
-      _message.type = 'message';
-      _message.text = message;
-      _message.channel = _message.channel || 'CSomethingSaySomething';
+      botMessage.user = 'U7654321';
+      botMessage.type = 'message';
+      botMessage.text = message;
+      botMessage.channel = botMessage.channel || 'CSomethingSaySomething';
 
-      _findAllStandupsStub = sinon.stub(models.Standup, 'findAll').resolves([ ]);
-      _findOneChannelStub = sinon.stub(models.Channel, 'findOne').resolves({ time: '1230', name: _message.channel, audience: null });
-      common.botStartsConvoWith(_message, common.botController.hears, done);
-  });
+      findAllStandupsStub = sinon.stub(models.Standup, 'findAll').resolves([]);
+      findOneChannelStub = sinon.stub(models.Channel, 'findOne').resolves({ time: '1230', name: botMessage.channel, audience: null });
+      common.botStartsConvoWith(botMessage, common.botController.hears, done);
+    }
+  );
 
   this.After(clearStubs);
 };

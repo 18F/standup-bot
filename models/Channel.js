@@ -1,11 +1,9 @@
-'use strict';
+const log = require('../getLogger')('Channel model');
 
-var log = require('../getLogger')('Channel model');
-
-module.exports = function (sequelize, DataTypes) {
+module.exports = (sequelize, DataTypes) => {
   log.verbose('Initializing');
 
-  var Channel = sequelize.define('Channel', {
+  const Channel = sequelize.define('Channel', {
     name: {
       type: DataTypes.STRING
     },

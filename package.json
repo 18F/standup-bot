@@ -9,7 +9,7 @@
   "main": "app.js",
   "scripts": {
     "check-shrinkwrap": "node scripts/test-shrinkwrap.js",
-    "lint": "jshint --config .jshintrc --exclude ./node_modules,./coverage .",
+    "lint": "eslint --fix '**/*.js'",
     "migrate": "./node_modules/sequelize-cli/bin/sequelize db:migrate --url $DATABASE_URL",
     "start": "node app.js",
     "test": "npm run check-shrinkwrap && LOG_LEVEL=100 istanbul cover cucumberjs && codecov",
@@ -20,7 +20,6 @@
   "dependencies": {
     "@18f/us-federal-holidays": "^1.1.1",
     "@erdc-itl/simple-logger": "^1.1.0",
-    "async": "^2.1.4",
     "better-queue": "^3.8.4",
     "botkit": "^0.6.2",
     "cfenv": "^1.0.3",
@@ -41,8 +40,10 @@
   "devDependencies": {
     "codecov": "^1.0.1",
     "cucumber": "^1.3.1",
+    "eslint": "^4.8.0",
+    "eslint-config-airbnb-base": "^12.0.1",
+    "eslint-plugin-import": "^2.7.0",
     "istanbul": "^0.4.2",
-    "jshint": "^2.9.1",
     "mocha": "^3.2.0",
     "mock-require": "^2.0.0",
     "sinon": "^1.17.3",

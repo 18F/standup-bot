@@ -1,7 +1,5 @@
-'use strict';
-
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up(queryInterface, Sequelize) {
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
@@ -37,17 +35,18 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true
       }
-    )).then(() => queryInterface.addColumn(
-      'Channels',
-      'friday',
-      {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true
-      }
-    ));
+    ))
+      .then(() => queryInterface.addColumn(
+        'Channels',
+        'friday',
+        {
+          type: Sequelize.BOOLEAN,
+          defaultValue: true
+        }
+      ));
   },
 
-  down: function (queryInterface, Sequelize) {
+  down() {
     /*
       Add reverting commands here.
       Return a promise to correctly handle asynchronicity.

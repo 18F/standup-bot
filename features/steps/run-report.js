@@ -1,35 +1,33 @@
-'use strict';
-var sinon = require('sinon');
+const sinon = require('sinon');
+const common = require('./common');
+const time = require('./time');
+const models = require('../../models');
+const reportRunner = require('../../lib/bot/getReportRunner');
 
-var common = require('./common');
-var time = require('./time');
-var models = require('../../models');
-var reportRunner = require('../../lib/bot/getReportRunner');
+module.exports = function runReportTests() {
+  let findAllChannelsStub;
+  let findOneChannelStub;
+  let findAllStandupsStub;
+  let bot;
 
-module.exports = function() {
-  var _findAllChannelsStub;
-  var _findOneChannelStub;
-  var _findAllStandupsStub;
-  var _bot;
-
-  this.When('the scheduled time comes', function() {
+  this.When('the scheduled time comes', () => {
     // Stub the models.Channel and models.Standup findAll
     // methods so we can guarantee behavior without worrying
     // about database contents.
-    _findAllChannelsStub = sinon.stub(models.Channel, 'findAll');
-    _findAllChannelsStub.resolves([{
+    findAllChannelsStub = sinon.stub(models.Channel, 'findAll');
+    findAllChannelsStub.resolves([{
       name: 'Test Channel',
       audience: null
     }]);
 
-    _findOneChannelStub = sinon.stub(models.Channel, 'findOne');
-    _findOneChannelStub.resolves({
+    findOneChannelStub = sinon.stub(models.Channel, 'findOne');
+    findOneChannelStub.resolves({
       name: 'Test Channel',
       audience: null
     });
 
-    _findAllStandupsStub = sinon.stub(models.Standup, 'findAll');
-    _findAllStandupsStub.resolves([{
+    findAllStandupsStub = sinon.stub(models.Standup, 'findAll');
+    findAllStandupsStub.resolves([{
       user: 'U00000000',
       userRealName: 'Bob the Tester',
       yesterday: 'In the past',
@@ -39,12 +37,12 @@ module.exports = function() {
     }]);
 
     // Also stub the bot
-    _bot = { };
-    _bot.say = sinon.stub().yields();
-    _bot.replyInThread = sinon.spy();
+    bot = { };
+    bot.say = sinon.stub().yields();
+    bot.replyInThread = sinon.spy();
 
     // Kick off the reporter
-    reportRunner(_bot)();
+    reportRunner(bot)();
 
     // If fake timers have been setup, reset them now.
     // Otherwise, setTimeout won't behave correctly (i.e.,
@@ -52,18 +50,16 @@ module.exports = function() {
     time.resetTimers();
   });
 
-  this.Then('the bot should report', function(done) {
+  this.Then('the bot should report', (done) => {
     // Wait until the findAll and say stubs have been called
-    common.wait(function() {
-      return _findAllChannelsStub.called && _findAllChannelsStub.called && _bot.say.called && _bot.replyInThread.called;
-    }, function() {
-      const sayMessage = _bot.say.args[0][0];
-      const threadedMessage = _bot.replyInThread.args[0][1];
+    common.wait(() => findAllChannelsStub.called && bot.say.called && bot.replyInThread.called, () => {
+      const sayMessage = bot.say.args[0][0];
+      const threadedMessage = bot.replyInThread.args[0][1];
 
       // The bot should post that it's doing the report, and
       // then reply to itself in a thread with the attachments
       // of the actual report
-      if (sayMessage.text.startsWith(`Today's standup for`) && threadedMessage.attachments.length) {
+      if (sayMessage.text.startsWith('Today\'s standup for') && threadedMessage.attachments.length) {
         done();
       } else {
         done(new Error('Expected bot to report with text and attachments in a thread'));
@@ -71,13 +67,13 @@ module.exports = function() {
     });
   });
 
-  this.Then('the bot should not report', function(done) {
+  this.Then('the bot should not report', (done) => {
     // Wait a second to give the report runner time
     // to bail out.  Since it shouldn't be calling
     // anything, we can't just wait until things
     // have been called.
-    setTimeout(function() {
-      if(_bot.say.called) {
+    setTimeout(() => {
+      if (bot.say.called) {
         done(new Error('Expected bot not to report'));
       } else {
         done();
@@ -86,15 +82,15 @@ module.exports = function() {
   });
 
   // Teardown stubs
-  this.After(function() {
-    if(_findAllChannelsStub) {
-      _findAllChannelsStub.restore();
+  this.After(() => {
+    if (findAllChannelsStub) {
+      findAllChannelsStub.restore();
     }
-    if(_findOneChannelStub) {
-      _findOneChannelStub.restore();
+    if (findOneChannelStub) {
+      findOneChannelStub.restore();
     }
-    if(_findAllStandupsStub) {
-      _findAllStandupsStub.restore();
+    if (findAllStandupsStub) {
+      findAllStandupsStub.restore();
     }
   });
 };

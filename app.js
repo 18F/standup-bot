@@ -1,62 +1,54 @@
-'use strict';
-
 require('./env');
-var log = require('./getLogger')('app');
-var Botkit = require('botkit');
-var schedule = require('node-schedule');
-var botLib = require('./lib/bot');
-var startWebServer = require('./lib/web/start');
-var cfenv = require('cfenv');
-
-var appEnv = cfenv.getAppEnv();
+const log = require('./getLogger')('app');
+const Botkit = require('botkit');
+const schedule = require('node-schedule');
+const botLib = require('./lib/bot');
+const startWebServer = require('./lib/web/start');
 
 // Database setup
-var models = require('./models');
-models.sequelize.sync(
-  // Set to true to reset db on load
-  {force: false}
-);
+const models = require('./models');
+
+// Set to true to reset db on load
+models.sequelize.sync({ force: false });
 
 if (!process.env.SLACK_TOKEN) {
   log.error('SLACK_TOKEN not set in environment.');
   process.exit(1);
 }
 
-var bkLogger = require('./getLogger')('botkit');
-function bkLog(level) {
-  var args = [ ];
-  for(var i = 1; i < arguments.length; i++) {
-    args.push(arguments[i]);
-  }
+const bkLogger = require('./getLogger')('botkit');
 
+function bkLog(inLevel, ...args) {
   // Remap botkit log levels
-  if(level === 'debug') {
+  let level = inLevel;
+  if (level === 'debug') {
     return;
-  }
-  else if(level === 'info') {
+  } else if (level === 'info') {
     level = 'verbose';
-  } else if(level === 'notice') {
+  } else if (level === 'notice') {
     level = 'info';
   }
 
-  var fn, thisObj;
-  if(bkLogger[level]) {
+  let fn;
+  let thisObj;
+
+  if (bkLogger[level]) {
     fn = bkLogger[level];
     thisObj = bkLogger;
   } else {
-    fn = console.log;
+    fn = console.log; // eslint-disable-line no-console
     thisObj = console;
-    args.unshift('[' + level + ']');
+    args.unshift(`[${level}]`);
   }
 
   fn.apply(thisObj, args);
 }
 
-var controller = Botkit.slackbot({
+const controller = Botkit.slackbot({
   debug: false,
   logger: { log: bkLog },
   webserver: {
-    static_dir: __dirname + '/lib/web/static'
+    static_dir: `${__dirname}/lib/web/static`
   }
 });
 
@@ -64,16 +56,16 @@ var controller = Botkit.slackbot({
 controller.spawn({
   token: process.env.SLACK_TOKEN,
   retry: 5
-}).startRTM(function(err, bot) {
-  if (err) {
-    log.error(err);
-    throw new Error(err);
+}).startRTM((startRTMerr, bot) => {
+  if (startRTMerr) {
+    log.error(startRTMerr);
+    throw new Error(startRTMerr);
   } else {
     log.info('Connected to RTM');
-    bot.identifyBot(function(err,identity) {
+    bot.identifyBot((identifyBotErr, identity) => {
       // identity contains...
       // {name, id, team_id}
-      log.info('Bot name: ' + identity.name);
+      log.info(`Bot name: ${identity.name}`);
 
       // Set up cron job to check every minute for channels that need a standup report
       schedule.scheduleJob('* * * * 1-5', botLib.getReportRunner(bot));

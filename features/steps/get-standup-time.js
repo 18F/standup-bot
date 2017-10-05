@@ -1,45 +1,45 @@
-'use strict';
-var sinon = require('sinon');
-var botLib = require('../../lib/bot');
-var common = require('./common');
-var models = require('../../models');
+const sinon = require('sinon');
+const botLib = require('../../lib/bot');
+const common = require('./common');
+const models = require('../../models');
 
-module.exports = function() {
-  var _channelFindStub = null;
-  var _channelFindResolves = { get: function(dayName) {
-    return false;
-  }};
+module.exports = function getStandupTimeTests() {
+  let channelFindStub = null;
+  const channelFindResolves = {
+    get() {
+      return false;
+    }
+  };
 
   // TODO: move these functions to common.js
-  this.Given(/the standup is scheduled for ([1-2]?\d:[0-5]\d [ap]m)/, function(time) {
-    var plus12 = time.substr(-2, 2) === 'pm' ? 1200 : 0;
-    var scheduledTime = Number(time.replace(':', '').substr(0, 4).trim()) + plus12;
+  this.Given(/the standup is scheduled for ([1-2]?\d:[0-5]\d [ap]m)/, (time) => {
+    const plus12 = time.substr(-2, 2) === 'pm' ? 1200 : 0;
+    const scheduledTime = Number(time.replace(':', '').substr(0, 4).trim()) + plus12;
 
-    _channelFindResolves.time = scheduledTime;
-    if(!_channelFindStub) {
-      _channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(_channelFindResolves);
+    channelFindResolves.time = scheduledTime;
+    if (!channelFindStub) {
+      channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(channelFindResolves);
     }
   });
 
-  this.Given(/the standup is scheduled on (.*)/, function(days) {
-    days = days.split(' ').map(day => day.toLowerCase());
-    _channelFindResolves.get = function(dayName) {
-      return days.indexOf(dayName.toLowerCase()) >= 0;
-    }
-    if(!_channelFindStub) {
-      _channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(_channelFindResolves);
+  this.Given(/the standup is scheduled on (.*)/, (daysFromSetup) => {
+    const days = daysFromSetup.split(' ').map(day => day.toLowerCase());
+    channelFindResolves.get = dayName => days.indexOf(dayName.toLowerCase()) >= 0;
+
+    if (!channelFindStub) {
+      channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(channelFindResolves);
     }
   });
 
   // TODO: move these functions to common.js
-  this.Given('no standup is scheduled', function() {
-    _channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(null);
+  this.Given('no standup is scheduled', () => {
+    channelFindStub = sinon.stub(models.Channel, 'findOne').resolves(null);
   });
 
-  this.When(/I say "@bot when"/, function(done) {
+  this.When(/I say "@bot when"/, (done) => {
     botLib.getStandupInfo(common.botController);
 
-    var message = {
+    const message = {
       type: 'message',
       text: 'standup time',
       channel: 'CSomethingSaySomething'
@@ -48,10 +48,10 @@ module.exports = function() {
     common.botRepliesToHearing(message, done);
   });
 
-  this.After(function() {
-    if(_channelFindStub) {
-      _channelFindStub.restore();
-      _channelFindStub = null;
+  this.After(() => {
+    if (channelFindStub) {
+      channelFindStub.restore();
+      channelFindStub = null;
     }
   });
 };
