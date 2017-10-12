@@ -2,7 +2,9 @@
 
 ## Pre-requisites
 
-NOTE: If you are planning to run `standup-slack-bot`  in docker, please refer to the [Docker](#docker) section below.
+NOTE: It is recommended to run `standup-slack-bot` in docker. Please refer to the [Docker](#docker) section below after creating slack bot token.
+
+Manual instructions  also provided below.
 
 Before installing standup-bot, you'll need to have access to a:
 
@@ -13,19 +15,17 @@ Before installing standup-bot, you'll need to have access to a:
 
 Follow [the instructions from botkit][botkit-readme] to setup a bot integration.
 
-1) Install Botkit on your hosting platform of choice [more info here](readme.md#installation).
-
-2) First make a bot integration inside of your Slack channel. Go here:
+1) First make a bot integration inside of your Slack channel. Go here:
 
 https://my.slack.com/services/new/bot
 
 Enter a name for your bot. Make it something fun and friendly, but avoid a single task specific name. Bots can do lots! Let's not pigeonhole them.
 
-3) When you click "Add Bot Integration", you are taken to a page where you can add additional details about your bot, like an avatar, as well as customize its name & description.
+2) When you click "Add Bot Integration", you are taken to a page where you can add additional details about your bot, like an avatar, as well as customize its name & description.
 
 Copy the API token that Slack gives you. You'll need it for running the slack bot below
 
-## Setting up
+## Setting up (without Docker)
 
 ```bash
 git clone https://github.com/18F/standup-slack-bot.git
