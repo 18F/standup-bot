@@ -9,7 +9,21 @@ Before installing standup-bot, you'll need to have access to a:
 - PostgreSQL database; and
 - Slack API token
 
-To get a Slack API token, you will need to create a bot integration from the Slack admin panel: <https://your-team.slack.com/apps/manage/custom-integrations> (replace `your-team` with your Slack team name).
+### Get slack API Token
+
+Follow [the instructions from botkit][botkit-readme] to setup a bot integration.
+
+1) Install Botkit on your hosting platform of choice [more info here](readme.md#installation).
+
+2) First make a bot integration inside of your Slack channel. Go here:
+
+https://my.slack.com/services/new/bot
+
+Enter a name for your bot. Make it something fun and friendly, but avoid a single task specific name. Bots can do lots! Let's not pigeonhole them.
+
+3) When you click "Add Bot Integration", you are taken to a page where you can add additional details about your bot, like an avatar, as well as customize its name & description.
+
+Copy the API token that Slack gives you. You'll need it for running the slack bot below
 
 ## Setting up
 
@@ -66,3 +80,5 @@ Finally, to start with docker-compose:
 ## Testing
 
 Tests are written in [cucumberjs](https://github.com/cucumber/cucumber-js).  To run them, just `npm test`.
+
+[botkit-readme]: https://github.com/howdyai/botkit/blob/HEAD/docs/readme-slack.md#getting-started
