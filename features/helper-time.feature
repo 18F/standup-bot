@@ -2,19 +2,31 @@ Feature: Time Helper, parsing a string
   I want the time helper to parse a time from a string
   I want the time helper to convert a time to a formatted string
 
-  Scenario Outline: Parsing a string to a time
+  Scenario Outline: Parsing a string to a time (negative examples)
     Given the string <time_string>
       When I try to parse it
-      Then the time <status> parse
+      Then the time should not parse
 
     Examples:
       | time_string | status     |
+      | 8301        | should not |
       | 830         | should not |
-      | 8:30        | should not |
-      | 830am       | should     |
-      | 830 am      | should     |
-      | 0830        | should     |
-      | 0830 M W F  | should     |
+      | 830am       | should not |
+      | 830 am      | should not |
+
+  Scenario Outline: Parsing a string to a time (positive examples)
+    Given the string <time_string>
+      When I try to parse it
+      Then the time should parse
+      And the parsed time and days should be <expected_time_days>
+
+    Examples:
+      | time_string           | expected_time_days                                |
+      | 8:30                  | 8:30 am Monday,Tuesday,Wednesday,Thursday,Friday  |
+      | 0930 Mo Tu Th         | 9:30 am Monday,Tuesday,Thursday                   |
+      | 9:30 pm Mo Tu Th      | 9:30 pm Monday,Tuesday,Thursday                   |
+      | 1330 W F              | 1:30 pm Wednesday,Friday                          |
+      | 1845 Wednesday Friday | 6:45 pm Wednesday,Friday                          |
 
   # The following scenarios match patterns instead of values
   # known ahead of time.  To match a pattern, they use a

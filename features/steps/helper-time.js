@@ -57,6 +57,15 @@ module.exports = function() {
     }
   });
 
+  this.Then(/^the parsed time and days should be (.*)$/, function(expectedTimeAndDays) {
+    //in format HH:mm am|pm Monday,Tuesday,Friday
+    let actual = `${_parsedValue.time.format('h:mm a')} ${_parsedValue.days.join(',')}`;
+    if(actual !== expectedTimeAndDays) {
+      throw new Error('Expected "' + expectedTimeAndDays + '" to equal "' + actual + '"');
+    }
+    return true;
+  });
+
   this.Then(/^the result matches (.*)$/, function(pattern) {
     if(!_formattedTime.match(new RegExp(pattern))) {
       throw new Error('Expected "' + _formattedTime + '" to match "' + pattern + '"');
